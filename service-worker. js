@@ -1,0 +1,49 @@
+// Jina la cache
+const CACHE_NAME = 'ukoo-app-v1';
+
+// Faili zote muhimu za cache
+const ASSETS_TO_CACHE = [
+  '/',
+  '/index.html',
+  '/site.webmanifest',
+  '/favicon.ico',
+  '/android-chrome-192x192.png',
+  '/android-chrome-512x512.png'
+];
+
+// Install event - weka files kwenye cache
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Caching assets...');
+        return cache.addAll(ASSETS_TO_CACHE);
+      })
+  );
+});
+
+// Activate event - clear old caches ikiwa zinapatikana
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      )
+    )
+  );
+});
+
+// Fetch event - serve files kutoka cache kwanza
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(cachedRes => {
+        if (cachedRes) return cachedRes;
+        return fetch(event.request);
+      })
+  );
+});
